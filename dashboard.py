@@ -345,15 +345,26 @@ elif page == "School Analysis":
         empty("No school data collected yet.")
     else:
         slabel("🏆 Class Leaderboard")
-        if not sc_summary.empty and 'rank' in sc_summary.columns and sc_summary['rank'].notna().any():
+       if not sc_summary.empty and 'rank' in sc_summary.columns and sc_summary['rank'].notna().any():
             lb = sc_summary.sort_values('rank').copy()
-            lb['Rank']       = lb['rank'].apply(lambda x: "🥇" if x==1 else "🥈" if x==2 else "🥉" if x==3 else f"#{int(x)}")
-            lb['Efficiency'] = lb['efficiency_pct'].apply(lambda x: f"{x}%" if pd.notna(x) else "—")
-            lb['Score']      = lb['score'].apply(lambda x: int(x) if pd.notna(x) else "—")
-            st.dataframe(lb[['Rank','Class','Efficiency','Score']], hide_index=True, use_container_width=True)
+            th = "style='text-align:left;padding:11px 12px;color:#1c8ecf;font-family:Poppins,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;'"
+            header = "<tr style='background:#e8f4fc;'>" + "".join([f"<th {th}>{h}</th>" for h in ["Rank","Class","Efficiency","Score"]]) + "</tr>"
+            rows = ""
+            for _, r in lb.iterrows():
+                medal = "🥇" if r['rank']==1 else "🥈" if r['rank']==2 else "🥉" if r['rank']==3 else "#"+str(int(r['rank']))
+                bg = "#fef6d8" if r['rank']==1 else "white"
+                ev = str(r['efficiency_pct'])+"%" if pd.notna(r.get('efficiency_pct')) else "—"
+                sv = str(int(r['score'])) if pd.notna(r.get('score')) else "—"
+                rows += "<tr style='background:"+bg+";border-bottom:1px solid #e2e8f0;'>"
+                rows += "<td style='padding:10px 12px;color:#1a2333;font-weight:700;'>"+medal+"</td>"
+                rows += "<td style='padding:10px 12px;color:#1a2333;font-weight:600;'>"+str(r['Class'])+"</td>"
+                rows += "<td style='padding:10px 12px;'><span style='background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:12px;font-weight:600;font-size:12px;'>"+ev+"</span></td>"
+                rows += "<td style='padding:10px 12px;color:#1c8ecf;font-weight:700;font-size:15px;'>"+sv+"</td>"
+                rows += "</tr>"
+            html = "<div style='overflow-x:auto;border-radius:12px;border:1px solid #e2e8f0;background:white;'><table style='width:100%;border-collapse:collapse;font-family:Quicksand,sans-serif;font-size:13px;background:white;'><thead>"+header+"</thead><tbody>"+rows+"</tbody></table></div>"
+            st.markdown(html, unsafe_allow_html=True)
         else:
             empty("Leaderboard available after intervention data is collected.")
-
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         slabel("Usage Trend by Class — Avg Devices ON per Day")
         if not sc_daily.empty and 'Date' in sc_daily.columns:
